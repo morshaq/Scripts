@@ -2,7 +2,7 @@
 
 import sys
 import shutil
-from opt.parse import OptionParser
+from optparse import OptionParser
 
 parser = OptionParser()
 parser.add_option("--service_type", dest="service_type")
@@ -13,7 +13,7 @@ parser.add_option("--artifact_path", dest="artifact_path")
 (options,args) = parser.parse_args()
 
 fileconf = "/etc/puppet/fileserver.conf"
-module_file_name = service_name + ".pp"
+module_file_name = options.service_name + ".pp"
 #artifact_path= "Staging-morservice-deploy"
 #service_type = 'web'
 #service_name = "morservice"
@@ -23,26 +23,30 @@ module_file_name = service_name + ".pp"
 
 
 
-
+#adding a raw to the File.Conf
 with open(fileconf, "a") as myfile:
-    myfile.write("\n[" + module_file_name + "]\n" + artifact_path + "\n allow *" )
+    myfile.write("\n[" + module_file_name + "]\n" +options. artifact_path + "\n allow *" )
 
- # create file in /etc/puppet/environments/skytap/modules
-outfile = open (module_path + module_file_name,'wb')
+
+ # create modul
+outfile = open (options.module_path + module_file_name,'wb')
 
 outfile.write('''class %s::%s($%s_services={})
 {
   create_resources(general::%s_service, $%s_services)
 }
-''' % (service_name, service_name, service_name, service_type, service_name))
+''' % (options.service_name, options.service_name, options.service_name, options.service_type, options.service_name))
+
 outfile.close()
 
-outfile = open (roll_path + module_file_name,'wb')
+#create roll
+outfile = open (options.roll_path + module_file_name,'wb')
 
 outfile.write('''class roles::%s{
         tag '%s'
 
         include %s::%s
 }
-''' % (service_name, service_name, service_name, service_name))
+''' % (options.service_name, options.service_name, options.service_name, options.service_name))
 outfile.close()
+
