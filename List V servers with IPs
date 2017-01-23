@@ -1,0 +1,48 @@
+#!/usr/bin/env python
+
+'''
+   A simple Python3 example script to gather and output VM Names and their Skytap IP addresses and associated VPN IPs.
+'''
+import requests
+import json
+
+## set Skytap username, password and configuration url ##
+auth = ('USERNAME', 'AUTH-TOKEN')     # login and password/API Token
+configuration_url = 'ENV-URL'   #configuration you wish to find IPs for
+
+## define the requisite url, headers for the Skytap API ##
+headers = {'Accept': 'application/json', 'Content-Type': 'application/json'}
+api_response = requests.get(configuration_url, headers=headers, auth=auth)
+config_json = json.loads(api_response.text)
+
+print('\nConfiguration ID: {}'.format(config_json["id"]))
+print('Configuration Name: {}'.format(config_json["name"]))
+
+for vm in config_json["vms"]:
+        print('\nVM Name: {}'.format(vm["name"]))
+        try:
+                for interfaces in vm["interfaces"]:
+                        print('IP: {}'.format(interfaces["ip"]))
+#                       print(interfaces)
+                        try:
+                                for ip in interfaces["nat_addresses"]["vpn_nat_addresses"]:
+                                        print('VPN NAT IP: {}'.format(ip["ip_address"]))
+                        except:
+#                               print("no VPN IP found")
+                                pass
+                        try:
+                                for ip in interfaces["public_ips"]:
+                                        print('PUBLIC IP: {}'.format(ip["address"]))
+                        except:
+#                               print("no Public IP found")
+                                pass
+                        try:
+                                for ip in interfaces["services"]:
+                                        print('PUBLISHED SERVICE: {} -> {}:{}'.format(
+                                                ip["internal_port"],ip["external_ip"],ip["external_port"]))
+                        except:
+#                               print("no Published Service found")
+                                pass
+        except:
+                print("no NIC found")
+                continue
